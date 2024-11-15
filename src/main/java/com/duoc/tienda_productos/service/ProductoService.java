@@ -1,6 +1,7 @@
 package com.duoc.tienda_productos.service;
 
 import com.duoc.tienda_productos.model.Producto;
+import com.duoc.tienda_productos.model.builder.ProductoBuilder;
 import com.duoc.tienda_productos.repository.ProductoRepository;
 import com.duoc.tienda_productos.dto.ProductoDTO;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -32,40 +33,33 @@ public class ProductoService {
     }
 
     public Producto crearProducto(ProductoDTO productoDTO) {
-        Producto producto = new Producto();
-        producto.setNombre(productoDTO.getNombre());
-        producto.setDescripcion(productoDTO.getDescripcion());
-        producto.setPrecio(productoDTO.getPrecio());
-        producto.setStock(productoDTO.getStock());
-        producto.setCategoria(productoDTO.getCategoria());
-        producto.setImagenUrl(productoDTO.getImagenUrl());
-        producto.setActivo(true);
+        Producto producto = new ProductoBuilder()
+            .conNombre(productoDTO.getNombre())
+            .conDescripcion(productoDTO.getDescripcion())
+            .conPrecio(productoDTO.getPrecio())
+            .conStock(productoDTO.getStock())
+            .conCategoria(productoDTO.getCategoria())
+            .conImagenUrl(productoDTO.getImagenUrl())
+            .activo(true)
+            .build();
         return productoRepository.save(producto);
     }
 
     public Optional<Producto> actualizarProducto(Long id, ProductoDTO productoDTO) {
         return productoRepository.findById(id)
-                .map(producto -> {
-                    if (productoDTO.getNombre() != null) {
-                        producto.setNombre(productoDTO.getNombre());
-                    }
-                    if (productoDTO.getDescripcion() != null) {
-                        producto.setDescripcion(productoDTO.getDescripcion());
-                    }
-                    if (productoDTO.getPrecio() != null) {
-                        producto.setPrecio(productoDTO.getPrecio());
-                    }
-                    if (productoDTO.getStock() != null) {
-                        producto.setStock(productoDTO.getStock());
-                    }
-                    if (productoDTO.getCategoria() != null) {
-                        producto.setCategoria(productoDTO.getCategoria());
-                    }
-                    if (productoDTO.getImagenUrl() != null) {
-                        producto.setImagenUrl(productoDTO.getImagenUrl());
-                    }
-                    return productoRepository.save(producto);
-                });
+            .map(productoExistente -> {
+                Producto productoActualizado = new ProductoBuilder()
+                    .conNombre(productoDTO.getNombre() != null ? productoDTO.getNombre() : productoExistente.getNombre())
+                    .conDescripcion(productoDTO.getDescripcion() != null ? productoDTO.getDescripcion() : productoExistente.getDescripcion())
+                    .conPrecio(productoDTO.getPrecio() != null ? productoDTO.getPrecio() : productoExistente.getPrecio())
+                    .conStock(productoDTO.getStock() != null ? productoDTO.getStock() : productoExistente.getStock())
+                    .conCategoria(productoDTO.getCategoria() != null ? productoDTO.getCategoria() : productoExistente.getCategoria())
+                    .conImagenUrl(productoDTO.getImagenUrl() != null ? productoDTO.getImagenUrl() : productoExistente.getImagenUrl())
+                    .activo(productoExistente.getActivo())
+                    .build();
+                productoActualizado.setId(id);
+                return productoRepository.save(productoActualizado);
+            });
     }
 
     public Optional<Producto> actualizarStock(Long id, Integer cantidad) {
