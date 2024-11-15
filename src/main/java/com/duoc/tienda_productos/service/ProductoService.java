@@ -1,9 +1,10 @@
 package com.duoc.tienda_productos.service;
 
 import com.duoc.tienda_productos.model.Producto;
-import com.duoc.tienda_productos.model.builder.ProductoBuilder;
 import com.duoc.tienda_productos.repository.ProductoRepository;
 import com.duoc.tienda_productos.dto.ProductoDTO;
+import com.duoc.tienda_productos.model.builder.ProductoBuilder;
+import com.duoc.tienda_productos.config.ProductoCache;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import java.util.List;
@@ -15,21 +16,50 @@ public class ProductoService {
     @Autowired
     private ProductoRepository productoRepository;
 
+    private final ProductoCache productoCache = ProductoCache.getInstance();
+
     public List<Producto> obtenerTodosLosProductos() {
-        return productoRepository.findByActivoTrue();
+        List<Producto> productos = productoRepository.findByActivoTrue();
+        // Actualiza el caché con todos los productos
+        productos.forEach(productoCache::addProducto);
+        return productos;
     }
 
     public Optional<Producto> obtenerProductoPorId(Long id) {
-        return productoRepository.findById(id)
+        // Primero busca en el caché
+        Optional<Producto> productoCache = this.productoCache.getProducto(id);
+        if (productoCache.isPresent()) {
+            return productoCache.filter(Producto::getActivo);
+        }
+
+        // Si no está en caché, busca en la base de datos
+        Optional<Producto> productoDB = productoRepository.findById(id)
                 .filter(Producto::getActivo);
+        
+        // Si se encuentra en la DB, añádelo al caché
+        productoDB.ifPresent(this.productoCache::addProducto);
+        
+        return productoDB;
     }
 
     public List<Producto> buscarPorCategoria(String categoria) {
-        return productoRepository.findByCategoria(categoria);
+        // Obtén los productos de la base de datos
+        List<Producto> productos = productoRepository.findByCategoria(categoria);
+        
+        // Actualiza el caché con los productos encontrados
+        productos.forEach(productoCache::addProducto);
+        
+        return productos;
     }
 
     public List<Producto> buscarPorNombre(String nombre) {
-        return productoRepository.findByNombreContainingIgnoreCase(nombre);
+        // Obtén los productos de la base de datos
+        List<Producto> productos = productoRepository.findByNombreContainingIgnoreCase(nombre);
+        
+        // Actualiza el caché con los productos encontrados
+        productos.forEach(productoCache::addProducto);
+        
+        return productos;
     }
 
     public Producto crearProducto(ProductoDTO productoDTO) {
@@ -42,7 +72,10 @@ public class ProductoService {
             .conImagenUrl(productoDTO.getImagenUrl())
             .activo(true)
             .build();
-        return productoRepository.save(producto);
+        
+        Producto productoGuardado = productoRepository.save(producto);
+        productoCache.addProducto(productoGuardado);
+        return productoGuardado;
     }
 
     public Optional<Producto> actualizarProducto(Long id, ProductoDTO productoDTO) {
@@ -58,19 +91,24 @@ public class ProductoService {
                     .activo(productoExistente.getActivo())
                     .build();
                 productoActualizado.setId(id);
-                return productoRepository.save(productoActualizado);
+                Producto savedProduct = productoRepository.save(productoActualizado);
+                productoCache.addProducto(savedProduct);
+                return savedProduct;
             });
     }
 
     public Optional<Producto> actualizarStock(Long id, Integer cantidad) {
         return productoRepository.findById(id)
-                .map(producto -> {
-                    producto.setStock(cantidad);
-                    return productoRepository.save(producto);
-                });
+            .map(producto -> {
+                producto.setStock(cantidad);
+                Producto savedProduct = productoRepository.save(producto);
+                productoCache.addProducto(savedProduct);
+                return savedProduct;
+            });
     }
 
     public void eliminarProducto(Long id) {
         productoRepository.deleteById(id);
+        productoCache.removeProducto(id);
     }
 }
