@@ -31,8 +31,8 @@ COPY Wallet_RNDBN3TSBMN53C36 /app/Wallet_RNDBN3TSBMN53C36
 # Copia el archivo jar al contenedor
 COPY --from=buildstage /app/target/*.jar /app/app.jar
 
-# Exponer el puerto 8080 (puerto típico de Spring Boot)
-EXPOSE 8080
+# Exponer el puerto 8082 (puerto típico de Spring Boot)
+EXPOSE 8082
 
 # Comando para ejecutar la aplicación
 CMD ["java", "-jar", "/app/app.jar"]
