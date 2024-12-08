@@ -25,7 +25,7 @@ public class DataInitializer implements CommandLineRunner {
                 .conPrecio(new BigDecimal("1500000"))
                 .conStock(10)
                 .conCategoria("Computadores")
-                .conImagenUrl("laptop.jpg")
+                .conImagenUrl("https://p1-ofp.static.pub//medias/25642162315_LOQ_202302210350011713204647531.png")
                 .activo(true)
                 .build();
             productoRepository.save(laptop);
@@ -36,7 +36,7 @@ public class DataInitializer implements CommandLineRunner {
                 .conPrecio(new BigDecimal("700000"))
                 .conStock(20)
                 .conCategoria("Celulares")
-                .conImagenUrl("smartphone.jpg")
+                .conImagenUrl("https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRPF0rESduOEQ9MUhGhVhgm2R_fyVdHMu8g6Q&s")
                 .activo(true)
                 .build();
             productoRepository.save(smartphone);
@@ -47,7 +47,7 @@ public class DataInitializer implements CommandLineRunner {
                 .conPrecio(new BigDecimal("350000"))
                 .conStock(15)
                 .conCategoria("Tablets")
-                .conImagenUrl("tablet.jpg")
+                .conImagenUrl("https://images.samsung.com/is/image/samsung/p6pim/cl/feature/165669139/cl-feature-galaxy-tab-s10-ultra-sm-x920-543885901?$FB_TYPE_K_JPG")
                 .activo(true)
                 .build();
             productoRepository.save(tablet);
